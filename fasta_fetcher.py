@@ -1,122 +1,22 @@
-dna_to_rna = {
-    "A": "U",
-    "T": "A",
-    "G": "C",
-    "C": "G",
-    "a": "u",
-    "t": "a",
-    "g": "c",
-    "c": "g",
-}
-
-dna_to_dna = {
-    "A": "T",
-    "T": "A",
-    "G": "C",
-    "C": "G",
-    "a": "t",
-    "t": "a",
-    "g": "c",
-    "c": "g",
-}
-
-rna_to_dna = {
-    "A": "T",
-    "U": "A",
-    "G": "C",
-    "C": "G",
-    "a": "t",
-    "u": "a",
-    "g": "c",
-    "c": "g",
-}
-
-rna_to_rna = {
-    "A": "U",
-    "U": "A",
-    "G": "C",
-    "C": "G",
-    "a": "u",
-    "u": "a",
-    "g": "c",
-    "c": "g",
-}
-
-dna_alphabet = ["A", "a", "T", "t", "G", "g", "C", "c"]
-rna_alphabet = ["A", "a", "U", "u", "G", "g", "C", "c"]
-
-# Checks
-
-def is_dna(sequence: str) -> bool:
-    return set(sequence).issubset(dna_alphabet)
-
-
-def is_rna(sequence: str) -> bool:
-    return set(sequence).issubset(rna_alphabet)
+from utils.dna_rna_utils import transcribe, reverse, \
+                                complement, reverse_complement
+from utils.fasta_filter_utils import get_gc_content, get_quality_score
 
 """
-Auxillary functions for the main
-First, check the sequence being passed
-Print the 'error' statement if the sequence is invalid
+Run dna and rna tools on a sequence or sequences with specified actions.
+
+Args:
+    Variable length argument list. Sequences are followed by an action.
+
+Returns:
+    Processed sequence or a single sequence.
+
+Raises:
+    ValueError: If an invalid action or list are provided.
 """
 
-def transcribe(sequence):
-    if is_dna(sequence):
-        dna_to_rna = str.maketrans("Tt", "Uu")
-        result = sequence.translate(dna_to_rna)
-        return ''.join(result)
-    else:
-        print(f"The sequence '{sequence}' is not a DNA \
-                and could not be transcribed!")
-        return None
 
-
-def reverse(sequence):
-    if is_dna(sequence) or is_rna(sequence):
-        return sequence[::-1]
-    else:
-        print(
-            f"The sequence '{sequence}' is not a nucleic acid and\
-                could not be reversed!")
-        return None
-
-
-def reverse_transcribe(sequence):
-    if is_rna(sequence):
-        result = [rna_to_dna[x] for x in sequence]
-        return "".join(result)
-    else:
-        print(
-            f"The sequence '{sequence}'is not an RNA and could not\
-                be reverse transcribed!"
-        )
-        return None
-
-
-def complement(sequence, reverse=False):
-    if is_dna(sequence):
-        result = [dna_to_dna[x] for x in sequence]
-        return "".join(result)
-    elif is_rna(sequence):
-        result = [rna_to_rna[x] for x in sequence]
-        return "".join(result)
-    else:
-        reverse_str = "reverse " if reverse else ""
-        print(
-            f"The sequence '{sequence}' is not a nucleic acid and\
-                {reverse_str}complement could not be found!"
-        )
-        return None
-
-
-def reverse_complement(sequence):
-    return complement(sequence[::-1], reverse=True)
-
-"""
-Main functions in the script
-"""
-
-def run_dna_rna_tools(*args):
+def run_dna_rna_tools(*args: str) -> list[str]:
 
     action_map = {
         "transcribe": transcribe,
@@ -125,27 +25,67 @@ def run_dna_rna_tools(*args):
         "reverse_complement": reverse_complement,
     }
 
+    if len(args) <= 1:
+        raise ValueError("Invlaid number of arguments is passed.")
+
     sequences = args[:-1]
     action = args[-1]
-    results = []
 
+    results = []
     if action in action_map:
         for sequence in sequences:
             result = action_map[action](sequence)
             results.append(result)
     else:
-        raise ValueError( f"The action '{action}' is invalid! Valid actions are: \
+        raise ValueError(
+            f"The action '{action}' is invalid! Valid actions are: \
                 transcribe, reverse transcribe, complement,\
-                reverse complement, reverse.")
-
-    if len(results) == 1:
-        results = results[0]
-
-    return results
+                reverse complement, reverse."
+        )
+    return results[0] if len(results) == 1 else results
 
 
-def filter_fastq(seqs, 
-		gc_bounds=(0,100),
-		length_bounds=(0,2^32),
-		quality_threshold=0)):
-	return seqs
+"""
+Filter FASTQ sequences based on GC content, length, and quality.
+
+Args:
+    seqs: A dictionary where keys are sequence names and values are tuples.
+    gc_bounds: GC content bounds as a tuple or a single upper bound.
+    length_bounds: Length bounds as a tuple or a single upper bound.
+    quality_threshold: Minimum average quality score.
+
+Returns:
+    A dictionary with sequences that pass the filters.
+"""
+
+
+def filter_fastq(
+    seqs: dict[str, tuple[str, str]],
+    gc_bounds: tuple[float, float] = (0, 100),
+    length_bounds: tuple[float, float] = (0, 2**32),
+    quality_threshold: int = 0,
+) -> dict[str, tuple[str, str]]:
+
+    # check bounds
+    if isinstance(gc_bounds, (int, float)):
+        gc_bounds = (0, gc_bounds)
+
+    if isinstance(length_bounds, (int, float)):
+        length_bounds = (0, length_bounds)
+
+    # filtered_seq = 'name' : ('sequence', 'quality')
+    filtered_seqs = {}
+
+    for name, (seq, quality) in seqs.items():
+        gc_content = get_gc_content(seq)
+        length = len(seq)
+        quality_score = get_quality_score(quality)
+
+        if (
+            gc_bounds[0] <= gc_content <= gc_bounds[1]
+            and length_bounds[0] <= length <= length_bounds[1]
+            and quality_score >= quality_threshold
+        ):
+            filtered_seqs[name] = (seq, quality)
+
+    return filtered_seqs
