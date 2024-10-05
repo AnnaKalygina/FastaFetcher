@@ -1,11 +1,11 @@
 # FastaFetcher
-***FastaFetcher** is a module that allows to filter and analyse fasta sequences in a coherent way. 
+**FastaFetcher** is a module that allows to filter and analyse fasta sequences in a coherent way. 
 
 ## Installation
 To use this script you can clone the repository from github:
 
 ``` bash
-git@github.com:AnnaKalygina/FastaFetcher.git
+git clone git@github.com:AnnaKalygina/FastaFetcher.git
 
 cd FastaFetcher
 ```
@@ -25,7 +25,7 @@ This repository contains two main functions for fasta sequence analysis:
 - `run_dna_rna_tools()`: For performing operations like transcription, reverse transcription, complement, and complement on DNA and RNA sequences.
 - `filter_fastq()`: For filtering FASTQ sequences based on GC content, sequence length, and quality score.
 
-### `run_dna_rna_tools(*args: str) -> list[str]`
+### run_dna_rna_tools
 This function allows you to perform a variety of actions: transcription, reverse transcription, finding reverse and complement - on one or more DNA or RNA sequences. 
 
 #### Available actions:
@@ -50,7 +50,7 @@ sequences = run_dna_rna_tools("ATGC", "CGTA", "transcribe")
 print(sequences)  # Output: ['AUGC', 'CGUA']
 ```
 
-###`filter_fastq(seqs, gc_bounds = (0, 100), length_bounds = (0, 2^32), quality_threshold = 0) -> dict[str, tuple[str, str]]`
+### filter_fastq
 
 This function filters FASTQ sequences based on their GC content, sequence length, and quality score.
 
@@ -79,7 +79,7 @@ print(filtered)
 ```
 
 ## Additional calculations
-## GC Content Calculation
+### GC Content Calculation
 
 The function `filter_fastq()` filters sequences based on their GC content. The GC content is calculated as:
 
@@ -93,7 +93,7 @@ $$
 GC \, \text{content} = \frac{4}{8} \times 100 = 50\%
 $$
 
-## Quality Score Calculation
+### Quality Score Calculation
 
 The quality score for each sequence is calculated by taking the **ASCII value** of each character in the quality string and subtracting 33 (as per the Phred33 scale):
 
