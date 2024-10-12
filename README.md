@@ -10,7 +10,7 @@ git@github.com:AnnaKalygina/FastaFetcher.git
 cd FastaFetcher
 ```
 No third-party libraries are required; only the Python standard library is used.
-The repository contains the main script `fasta_fetcher.py` and the auxillary function scripts in the utils folder: `fasta_filter_utils.py` and `dna_rna_utils.py`. For a proper functioning the full module must be colned.
+The repository contains the main scripts `fasta_fetcher.py` and `bio_files_processor.py`. Additionally, auxillary function scripts in the utils folder: `fasta_filter_utils.py` and `dna_rna_utils.py`. For a proper functioning the full module must be colned.
 
 ## Usage
 
@@ -18,12 +18,15 @@ After installation, you can import the functions and use them in your own script
 
 ```python
 from fasta_fetcher import run_dna_rna_tools, filter_fastq
+from bio_files_processor.py import convert_multiline_fasta_to_oneline, parse_blast_output
 ```
 
 ## Functions
-This repository contains two main functions for fasta sequence analysis: 
+This repository contains four main functions for fasta sequence analysis: 
 - `run_dna_rna_tools()`: For performing operations like transcription, reverse transcription, complement, and complement on DNA and RNA sequences.
 - `filter_fastq()`: For filtering FASTQ sequences based on GC content, sequence length, and quality score.
+- `convert_multiline_fasta_to_oneline()`: For converting FASTA with multiline sequence to FASTA with oneline sequences.
+- `parse_blast_output()`: For parsing BLAST results and extracting the description of sequences with significant alignments.
 
 ### `run_dna_rna_tools(*args: str) -> list[str]`
 This function allows you to perform a variety of actions: transcription, reverse transcription, finding reverse and complement - on one or more DNA or RNA sequences. 
@@ -50,7 +53,7 @@ sequences = run_dna_rna_tools("ATGC", "CGTA", "transcribe")
 print(sequences)  # Output: ['AUGC', 'CGUA']
 ```
 
-###`filter_fastq(seqs, gc_bounds = (0, 100), length_bounds = (0, 2^32), quality_threshold = 0) -> dict[str, tuple[str, str]]`
+### `filter_fastq(seqs, gc_bounds = (0, 100), length_bounds = (0, 2^32), quality_threshold = 0) -> dict[str, tuple[str, str]]`
 
 This function filters FASTQ sequences based on their GC content, sequence length, and quality score.
 
@@ -76,6 +79,52 @@ example_fastq = {
 filtered = filter_fastq(example_fastq, gc_bounds=(40, 60), length_bounds=(8, 100), quality_threshold=30)
 print(filtered) 
 
+```
+### `convert_multiline_fasta_to_oneline(input_fasta: str, output_fasta: str = None)`
+
+This function converts multiline FASTA to oneline FASTA. 
+It assumes that the FASTA file could contain multiple independent seuences that are broken up into several lines. 
+Therefore, the function recognizes the name of a sequence and then merges sequence itself into a single line. 
+Additionaly, it reduces redundacy if two indentical sequences are stored in the file under the same name. 
+
+#### Arguments
+- `input_fasta`: Path to input FASTA file with sequences in multiple lines.
+- `output_fasta`: Path to output FASTA file (optional). If not provided, output will be printed. The argument is optional. If not passed the function prints name and sequence to stdout.
+
+#### Returns:
+None. Either writes oneline sequences to the `output_fasta` or prints oneline sequences stdout. 
+
+#### Example Usage:
+``` python 
+from bio_files import convert_multiline_fasta_to_oneline
+
+input_fasta = 'my_dir/example_input_fasta'
+output_fatsa = 'my_dir/example_output_fasta'
+
+convert_multiline_fasta_to_oneline(input_fasta, output_fasta)
+# The file will appear in the my_dir.
+```
+
+#### `parse_blast_output(input_file: str, output_file: str) -> None`
+This function reads the input BLAST output file, extracts the first "Description"
+for each query, and saves the descriptions in alphabetical order into the output file.
+
+#### Arguments
+- `input_fasta`: Path to input FASTA file with sequences in multiple lines.
+- `output_fasta`: Path to output FASTA file (optional). If not provided, output will be printed. The argument is optional. If not passed the function prints name and sequence to stdout.
+
+#### Returns:
+None. Either writes oneline sequences to the `output_fasta` or prints oneline sequences stdout. 
+
+#### Example Usage:
+``` python 
+from bio_files import convert_multiline_fasta_to_oneline
+
+input_fasta = 'my_dir/example_input_fasta'
+output_fatsa = 'my_dir/example_output_fasta'
+
+parse_blast_output(input_fasta, output_fasta)
+# The file will appear in the my_dir.
 ```
 
 ## Additional calculations

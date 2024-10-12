@@ -1,12 +1,18 @@
 from utils.dna_rna_utils import transcribe, reverse, \
-                                complement, reverse_complement
-from utils.fasta_filter_utils import get_gc_content, get_quality_score
+    complement, reverse_complement
+from utils.fasta_filter_utils import (
+    read_fastq,
+    write_fastq,
+    get_gc_content,
+    get_quality_score,
+)
+import os
 
 """
 Run dna and rna tools on a sequence or sequences with specified actions.
 
 Args:
-    Variable length argument list. Sequences are followed by an action.
+    *args: Variable length argument list. Sequences are followed by an action.
 
 Returns:
     Processed sequence or a single sequence.
@@ -46,37 +52,42 @@ def run_dna_rna_tools(*args: str) -> list[str]:
 
 
 """
-Filter FASTQ sequences based on GC content, length, and quality.
+Reads a FASTQ file, filters sequences based on GC content, length, and quality,
+and writes the filtered sequences to a new FASTQ file.
 
 Args:
-    seqs: A dictionary where keys are sequence names and values are tuples.
-    gc_bounds: GC content bounds as a tuple or a single upper bound.
-    length_bounds: Length bounds as a tuple or a single upper bound.
-    quality_threshold: Minimum average quality score.
+    input_fastq: Path to the input FASTQ file.
+    output_fastq: Path to the output FASTQ file.
+    gc_bounds: GC content bounds for filtering.
+    length_bounds: Length bounds for filtering.
+    quality_threshold: Minimum average quality score for filtering.
 
 Returns:
-    A dictionary with sequences that pass the filters.
+    None
 """
 
 
 def filter_fastq(
-    seqs: dict[str, tuple[str, str]],
-    gc_bounds: tuple[float, float] = (0, 100),
-    length_bounds: tuple[float, float] = (0, 2**32),
-    quality_threshold: int = 0,
-) -> dict[str, tuple[str, str]]:
+    input_fastq: str,
+    output_fastq: str,
+    gc_bounds=(0, 100),
+    length_bounds=(0, 2**32),
+    quality_threshold=0,
+):
+    output_dir = os.path.dirname(output_fastq)
+    if output_dir and not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
-    # check bounds
+    if os.path.exists(output_fastq):
+        raise FileExistsError(f"The file {output_fastq} already exists.")
+
     if isinstance(gc_bounds, (int, float)):
         gc_bounds = (0, gc_bounds)
 
     if isinstance(length_bounds, (int, float)):
         length_bounds = (0, length_bounds)
 
-    # filtered_seq = 'name' : ('sequence', 'quality')
-    filtered_seqs = {}
-
-    for name, (seq, quality) in seqs.items():
+    for name, seq, quality in read_fastq(input_fastq):
         gc_content = get_gc_content(seq)
         length = len(seq)
         quality_score = get_quality_score(quality)
@@ -86,6 +97,4 @@ def filter_fastq(
             and length_bounds[0] <= length <= length_bounds[1]
             and quality_score >= quality_threshold
         ):
-            filtered_seqs[name] = (seq, quality)
-
-    return filtered_seqs
+            write_fastq(output_fastq, name, seq, quality)
