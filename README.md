@@ -1,11 +1,11 @@
 # FastaFetcher
-***FastaFetcher** is a module that allows to filter and analyse fasta sequences in a coherent way. 
+**FastaFetcher** is a module that allows to filter and analyse fasta sequences in a coherent way. 
 
 ## Installation
 To use this script you can clone the repository from github:
 
 ``` bash
-git@github.com:AnnaKalygina/FastaFetcher.git
+git clone git@github.com:AnnaKalygina/FastaFetcher.git
 
 cd FastaFetcher
 ```
@@ -18,7 +18,6 @@ After installation, you can import the functions and use them in your own script
 
 ```python
 from fasta_fetcher import run_dna_rna_tools, filter_fastq
-from bio_files_processor.py import convert_multiline_fasta_to_oneline, parse_blast_output
 ```
 
 ## Functions
@@ -28,7 +27,7 @@ This repository contains four main functions for fasta sequence analysis:
 - `convert_multiline_fasta_to_oneline()`: For converting FASTA with multiline sequence to FASTA with oneline sequences.
 - `parse_blast_output()`: For parsing BLAST results and extracting the description of sequences with significant alignments.
 
-### `run_dna_rna_tools(*args: str) -> list[str]`
+### run_dna_rna_tools
 This function allows you to perform a variety of actions: transcription, reverse transcription, finding reverse and complement - on one or more DNA or RNA sequences. 
 
 #### Available actions:
@@ -53,7 +52,7 @@ sequences = run_dna_rna_tools("ATGC", "CGTA", "transcribe")
 print(sequences)  # Output: ['AUGC', 'CGUA']
 ```
 
-### `filter_fastq(seqs, gc_bounds = (0, 100), length_bounds = (0, 2^32), quality_threshold = 0) -> dict[str, tuple[str, str]]`
+### filter_fastq
 
 This function filters FASTQ sequences based on their GC content, sequence length, and quality score.
 
@@ -80,7 +79,7 @@ filtered = filter_fastq(example_fastq, gc_bounds=(40, 60), length_bounds=(8, 100
 print(filtered) 
 
 ```
-### `convert_multiline_fasta_to_oneline(input_fasta: str, output_fasta: str = None)`
+### convert_multiline_fasta_to_oneline
 
 This function converts multiline FASTA to oneline FASTA. 
 It assumes that the FASTA file could contain multiple independent seuences that are broken up into several lines. 
@@ -105,7 +104,7 @@ convert_multiline_fasta_to_oneline(input_fasta, output_fasta)
 # The file will appear in the my_dir.
 ```
 
-#### `parse_blast_output(input_file: str, output_file: str) -> None`
+#### parse_blast_output
 This function reads the input BLAST output file, extracts the first "Description"
 for each query, and saves the descriptions in alphabetical order into the output file.
 
@@ -128,7 +127,7 @@ parse_blast_output(input_fasta, output_fasta)
 ```
 
 ## Additional calculations
-## GC Content Calculation
+### GC Content Calculation
 
 The function `filter_fastq()` filters sequences based on their GC content. The GC content is calculated as:
 
@@ -142,7 +141,7 @@ $$
 GC \, \text{content} = \frac{4}{8} \times 100 = 50\%
 $$
 
-## Quality Score Calculation
+### Quality Score Calculation
 
 The quality score for each sequence is calculated by taking the **ASCII value** of each character in the quality string and subtracting 33 (as per the Phred33 scale):
 
